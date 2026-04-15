@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { encryptJson, randomIv } from "../lib/crypto";
 import { parseXlsxBuffer, exportDecryptedXlsx } from "../io/xlsx";
+import { buildVaultFile, decryptVaultFile, type VaultFileV1 } from "../io/vault-file";
 import { useSession } from "../session/SessionContext";
 import { useVaultRows } from "../vault/useVaultRows";
 import { useQueryClient } from "@tanstack/react-query";
@@ -41,8 +42,32 @@ export default function SettingsPage() {
         }
         setStatus(`Imported ${parsed.length} rows.`);
         qc.invalidateQueries({ queryKey: ["vault_rows"] });
+      } else if (file.name.toLowerCase().endsWith(".vault")) {
+        const text = new TextDecoder().decode(buf);
+        const parsed = JSON.parse(text) as VaultFileV1;
+        const pw = prompt("Master password that was used when this backup was made:");
+        if (!pw) { setBusy(false); return; }
+        setStatus("Decrypting backup…");
+        const plain = await decryptVaultFile(parsed, pw);
+        if (!confirm(`Found ${plain.length} rows in backup. Import now?`)) { setBusy(false); return; }
+        setStatus(`Encrypting ${plain.length} rows under current key…`);
+        const toInsert: { ciphertext: Uint8Array; iv: Uint8Array }[] = [];
+        for (const p of plain) {
+          const iv = randomIv();
+          const ct = await encryptJson(key!, iv, p);
+          toInsert.push({ ciphertext: new Uint8Array(ct), iv });
+        }
+        const BATCH = 100;
+        for (let i = 0; i < toInsert.length; i += BATCH) {
+          const chunk = toInsert.slice(i, i + BATCH);
+          setStatus(`Uploading ${i + chunk.length}/${toInsert.length}…`);
+          const { error } = await supabase.from("vault_rows").insert(chunk);
+          if (error) throw error;
+        }
+        setStatus(`Imported ${plain.length} rows from backup.`);
+        qc.invalidateQueries({ queryKey: ["vault_rows"] });
       } else {
-        setStatus("Unsupported file type (expected .xlsx).");
+        setStatus("Unsupported file type (expected .xlsx or .vault).");
       }
     } catch (e: any) {
       setStatus(`Error: ${e.message}`);
@@ -50,6 +75,25 @@ export default function SettingsPage() {
       setBusy(false);
       e.target.value = "";
     }
+  }
+
+  async function onExportVault() {
+    const { data: meta, error } = await supabase
+      .from("vault_meta").select("salt, kdf_params").single();
+    if (error) { alert(error.message); return; }
+    const { data: rowsData, error: rerr } = await supabase
+      .from("vault_rows").select("iv, ciphertext");
+    if (rerr) { alert(rerr.message); return; }
+    const file = buildVaultFile(
+      new Uint8Array(meta.salt),
+      meta.kdf_params,
+      (rowsData ?? []).map(r => ({
+        iv: new Uint8Array(r.iv),
+        ciphertext: new Uint8Array(r.ciphertext).buffer,
+      })),
+    );
+    const blob = new Blob([JSON.stringify(file)], { type: "application/json" });
+    triggerDownload(blob, `keys-backup-${dateStr()}.vault`);
   }
 
   function onExportDecrypted() {
@@ -79,6 +123,9 @@ export default function SettingsPage() {
         <h2 className="font-medium">Export</h2>
         <button onClick={onExportDecrypted} className="rounded border px-3 py-1 text-sm">
           Download decrypted .xlsx
+        </button>
+        <button onClick={onExportVault} className="rounded border px-3 py-1 text-sm ml-2">
+          Download encrypted .vault
         </button>
       </section>
     </div>
