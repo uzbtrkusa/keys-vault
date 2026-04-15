@@ -8,12 +8,15 @@ import { RowList } from "../components/RowList";
 import type { SearchScope } from "../lib/types";
 import { useSession } from "../session/SessionContext";
 import { supabase } from "../lib/supabase";
+import { usePresence } from "../vault/usePresence";
+import { PresenceBanner } from "../components/PresenceBanner";
 
 export default function VaultPage() {
   const { data: rows, isLoading, error } = useVaultRows();
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState<SearchScope>("all");
   const { lock } = useSession();
+  const others = usePresence();
 
   const filtered = useMemo(() => filterRows(rows ?? [], query, scope), [rows, query, scope]);
 
@@ -27,6 +30,7 @@ export default function VaultPage() {
           <button onClick={() => supabase.auth.signOut()} className="text-sm underline">Log out</button>
         </div>
       </div>
+      <PresenceBanner others={others} />
       <SearchBar value={query} onChange={setQuery} />
       <div className="flex items-center justify-between text-sm text-slate-600">
         <div className="flex items-center gap-2">
