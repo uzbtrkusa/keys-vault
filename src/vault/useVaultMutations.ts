@@ -14,9 +14,12 @@ export function useAddRow() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payload: VaultRowPlain) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
       const iv = randomIv();
       const ct = await encryptJson(key!, iv, payload);
       const { error } = await supabase.from("vault_rows").insert({
+        user_id: user.id,
         ciphertext: new Uint8Array(ct),
         iv,
       });
