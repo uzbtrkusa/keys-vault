@@ -19,7 +19,10 @@ export function LockOverlay() {
       const { data: meta, error } = await supabase.from("vault_meta")
         .select("salt, kdf_params, verifier").single();
       if (error) throw error;
-      const key = await deriveKey(pw, fromBytea(meta.salt), meta.kdf_params as KdfParams);
+      console.log("[debug] meta.salt type:", typeof meta.salt, "value:", meta.salt);
+      const salt = fromBytea(meta.salt);
+      console.log("[debug] decoded salt length:", salt.length, "bytes:", salt);
+      const key = await deriveKey(pw, salt, meta.kdf_params as KdfParams);
       const ok = await checkVerifier(key, fromBytea(meta.verifier).buffer);
       if (!ok) { setErr("Wrong master password."); return; }
       setKey(key);
