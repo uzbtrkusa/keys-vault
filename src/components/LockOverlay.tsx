@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 import { deriveKey, checkVerifier } from "../lib/crypto";
+import { fromBytea } from "../lib/bytea";
 import type { KdfParams } from "../lib/types";
 import { useSession } from "../session/SessionContext";
 import { PasswordInput } from "./PasswordInput";
@@ -18,8 +19,8 @@ export function LockOverlay() {
       const { data: meta, error } = await supabase.from("vault_meta")
         .select("salt, kdf_params, verifier").single();
       if (error) throw error;
-      const key = await deriveKey(pw, new Uint8Array(meta.salt), meta.kdf_params as KdfParams);
-      const ok = await checkVerifier(key, new Uint8Array(meta.verifier).buffer);
+      const key = await deriveKey(pw, fromBytea(meta.salt), meta.kdf_params as KdfParams);
+      const ok = await checkVerifier(key, fromBytea(meta.verifier).buffer);
       if (!ok) { setErr("Wrong master password."); return; }
       setKey(key);
     } catch (e: any) { setErr(e.message); }

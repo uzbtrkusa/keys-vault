@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 import { encryptJson, randomIv } from "../lib/crypto";
+import { fromBytea } from "../lib/bytea";
 import { useSession } from "../session/SessionContext";
 import type { VaultRow, VaultRowPlain } from "../lib/types";
 
@@ -57,7 +58,7 @@ export function useUpdateRow() {
         if (latest) {
           const { decryptJson } = await import("../lib/crypto");
           const pt = await decryptJson<VaultRowPlain>(
-            key!, new Uint8Array(latest.iv), new Uint8Array(latest.ciphertext).buffer
+            key!, fromBytea(latest.iv), fromBytea(latest.ciphertext).buffer
           );
           throw new ConflictError({
             id: latest.id, version: latest.version, updatedAt: latest.updated_at,

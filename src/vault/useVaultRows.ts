@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 import { decryptJson } from "../lib/crypto";
+import { fromBytea } from "../lib/bytea";
 import { useSession } from "../session/SessionContext";
 import type { VaultRow, VaultRowPlain } from "../lib/types";
 import { useEffect } from "react";
@@ -12,8 +13,8 @@ async function fetchAndDecrypt(key: ArrayBuffer): Promise<VaultRow[]> {
   if (error) throw error;
   const out: VaultRow[] = [];
   for (const r of data ?? []) {
-    const iv = new Uint8Array(r.iv);
-    const ct = new Uint8Array(r.ciphertext).buffer;
+    const iv = fromBytea(r.iv);
+    const ct = fromBytea(r.ciphertext).buffer;
     try {
       const pt = await decryptJson<VaultRowPlain>(key, iv, ct);
       out.push({

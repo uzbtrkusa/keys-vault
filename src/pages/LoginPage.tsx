@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { deriveKey, checkVerifier } from "../lib/crypto";
+import { fromBytea } from "../lib/bytea";
 import type { KdfParams } from "../lib/types";
 import { useSession } from "../session/SessionContext";
 import { PasswordInput } from "../components/PasswordInput";
@@ -36,9 +37,9 @@ export default function LoginPage() {
         .select("salt, kdf_params, verifier")
         .single();
       if (error) throw error;
-      const salt = new Uint8Array(meta.salt);
+      const salt = fromBytea(meta.salt);
       const params = meta.kdf_params as KdfParams;
-      const verifier = new Uint8Array(meta.verifier).buffer;
+      const verifier = fromBytea(meta.verifier).buffer;
       const key = await deriveKey(masterPw, salt, params);
       const ok = await checkVerifier(key, verifier);
       if (!ok) { setErr("Wrong master password."); setBusy(false); return; }
