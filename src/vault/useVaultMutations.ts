@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 import { encryptJson, randomIv } from "../lib/crypto";
-import { fromBytea } from "../lib/bytea";
+import { fromBytea, toHex } from "../lib/bytea";
 import { useSession } from "../session/SessionContext";
 import type { VaultRow, VaultRowPlain } from "../lib/types";
 
@@ -21,8 +21,8 @@ export function useAddRow() {
       const ct = await encryptJson(key!, iv, payload);
       const { error } = await supabase.from("vault_rows").insert({
         user_id: user.id,
-        ciphertext: new Uint8Array(ct),
-        iv,
+        ciphertext: toHex(new Uint8Array(ct)),
+        iv: toHex(iv),
       });
       if (error) throw error;
     },
@@ -40,8 +40,8 @@ export function useUpdateRow() {
       const { data, error } = await supabase
         .from("vault_rows")
         .update({
-          ciphertext: new Uint8Array(ct),
-          iv,
+          ciphertext: toHex(new Uint8Array(ct)),
+          iv: toHex(iv),
           version: args.version + 1,
         })
         .eq("id", args.id)

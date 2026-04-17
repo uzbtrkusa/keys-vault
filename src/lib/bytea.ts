@@ -16,3 +16,12 @@ export function fromBytea(v: unknown): Uint8Array {
   if (v instanceof ArrayBuffer) return new Uint8Array(v);
   return new Uint8Array(v as number[]);
 }
+
+/**
+ * Converts a Uint8Array to a hex string with \x prefix so PostgREST
+ * correctly stores it as bytea (not as the JSON representation of the array).
+ * Use this for every binary INSERT into Supabase.
+ */
+export function toHex(arr: Uint8Array): string {
+  return "\\x" + Array.from(arr).map(b => b.toString(16).padStart(2, "0")).join("");
+}

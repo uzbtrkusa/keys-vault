@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { deriveKey } from "../lib/crypto";
 import { createVerifier } from "../lib/crypto";
+import { toHex } from "../lib/bytea";
 import { DEFAULT_KDF_PARAMS } from "../lib/types";
 import { useSession } from "../session/SessionContext";
 import { PasswordInput } from "../components/PasswordInput";
@@ -45,9 +46,9 @@ export default function SignupPage() {
       // 3. Insert vault_meta
       const { error: metaErr } = await supabase.from("vault_meta").insert({
         user_id: userId,
-        salt,
+        salt: toHex(salt),
         kdf_params: DEFAULT_KDF_PARAMS,
-        verifier: new Uint8Array(verifier),
+        verifier: toHex(new Uint8Array(verifier)),
       });
       if (metaErr) throw metaErr;
 
