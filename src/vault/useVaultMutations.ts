@@ -14,17 +14,19 @@ export function useAddRow() {
   const { key } = useSession();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: VaultRowPlain) => {
+    mutationFn: async (payload: VaultRowPlain): Promise<string> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
       const iv = randomIv();
       const ct = await encryptJson(key!, iv, payload);
-      const { error } = await supabase.from("vault_rows").insert({
+      const { data, error } = await supabase.from("vault_rows").insert({
         user_id: user.id,
         ciphertext: toHex(new Uint8Array(ct)),
         iv: toHex(iv),
-      });
+      }).select("id").single();
       if (error) throw error;
+      if (!data) throw new Error("Insert succeeded but no data returned");
+      return data.id;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["vault_rows"] }),
   });
