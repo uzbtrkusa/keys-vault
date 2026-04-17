@@ -58,7 +58,7 @@ export function useUpdateRow() {
         if (latest) {
           const { decryptJson } = await import("../lib/crypto");
           const pt = await decryptJson<VaultRowPlain>(
-            key!, fromBytea(latest.iv), fromBytea(latest.ciphertext).buffer
+            key!, fromBytea(latest.iv), fromBytea(latest.ciphertext).buffer as ArrayBuffer
           );
           throw new ConflictError({
             id: latest.id, version: latest.version, updatedAt: latest.updated_at,

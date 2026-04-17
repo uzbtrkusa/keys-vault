@@ -39,7 +39,7 @@ export default function LoginPage() {
       if (error) throw error;
       const salt = fromBytea(meta.salt);
       const params = meta.kdf_params as KdfParams;
-      const verifier = fromBytea(meta.verifier).buffer;
+      const verifier = fromBytea(meta.verifier).buffer as ArrayBuffer;
       const key = await deriveKey(masterPw, salt, params);
       const ok = await checkVerifier(key, verifier);
       if (!ok) { setErr("Wrong master password."); setBusy(false); return; }

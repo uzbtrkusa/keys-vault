@@ -20,7 +20,7 @@ export function LockOverlay() {
         .select("salt, kdf_params, verifier").single();
       if (error) throw error;
       const key = await deriveKey(pw, fromBytea(meta.salt), meta.kdf_params as KdfParams);
-      const ok = await checkVerifier(key, fromBytea(meta.verifier).buffer);
+      const ok = await checkVerifier(key, fromBytea(meta.verifier).buffer as ArrayBuffer);
       if (!ok) { setErr("Wrong master password."); return; }
       setKey(key);
     } catch (e: any) { setErr(e.message); }

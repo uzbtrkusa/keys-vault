@@ -14,7 +14,7 @@ async function fetchAndDecrypt(key: ArrayBuffer): Promise<VaultRow[]> {
   const out: VaultRow[] = [];
   for (const r of data ?? []) {
     const iv = fromBytea(r.iv);
-    const ct = fromBytea(r.ciphertext).buffer;
+    const ct = fromBytea(r.ciphertext).buffer as ArrayBuffer;
     try {
       const pt = await decryptJson<VaultRowPlain>(key, iv, ct);
       out.push({
