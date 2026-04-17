@@ -50,6 +50,38 @@ export function RowItem({ row, isExpanded, onToggle, onDuplicateSaved, query }: 
   const [duplicating,   setDuplicating]   = useState(false);
 
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const textareaRef   = useRef<HTMLTextAreaElement>(null);
+  const [noteHeight, setNoteHeight] = useState<number | null>(null);
+
+  function handleResizeDragStart(e: React.MouseEvent) {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startHeight = textareaRef.current?.offsetHeight ?? 96;
+    function onMove(ev: MouseEvent) {
+      setNoteHeight(Math.max(60, startHeight + (ev.clientY - startY)));
+    }
+    function onUp() {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    }
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }
+
+  function handleResizeTouchStart(e: React.TouchEvent) {
+    const startY = e.touches[0].clientY;
+    const startHeight = textareaRef.current?.offsetHeight ?? 96;
+    function onMove(ev: TouchEvent) {
+      ev.preventDefault();
+      setNoteHeight(Math.max(60, startHeight + (ev.touches[0].clientY - startY)));
+    }
+    function onEnd() {
+      document.removeEventListener("touchmove", onMove);
+      document.removeEventListener("touchend", onEnd);
+    }
+    document.addEventListener("touchmove", onMove, { passive: false });
+    document.addEventListener("touchend", onEnd);
+  }
 
   const upd = useUpdateRow();
   const add = useAddRow();
@@ -314,12 +346,23 @@ export function RowItem({ row, isExpanded, onToggle, onDuplicateSaved, query }: 
           <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">
             Note
           </span>
-          <textarea
-            value={localNote}
-            onChange={e => setLocalNote(e.target.value)}
-            rows={4}
-            className="mt-1 w-full rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-sm font-mono text-slate-900 dark:text-slate-100 resize-y focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 transition-shadow"
-          />
+          <div className="mt-1">
+            <textarea
+              ref={textareaRef}
+              value={localNote}
+              onChange={e => setLocalNote(e.target.value)}
+              rows={4}
+              style={noteHeight !== null ? { height: noteHeight } : undefined}
+              className="w-full rounded-t-md rounded-b-none border border-b-0 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-sm font-mono text-slate-900 dark:text-slate-100 resize-none focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 transition-shadow"
+            />
+            <div
+              onMouseDown={handleResizeDragStart}
+              onTouchStart={handleResizeTouchStart}
+              className="flex items-center justify-center h-5 cursor-ns-resize rounded-b-md border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 select-none"
+            >
+              <div className="w-2/3 h-1 rounded-full bg-slate-300 dark:bg-slate-500" />
+            </div>
+          </div>
         </label>
 
         {/* Generic error */}
