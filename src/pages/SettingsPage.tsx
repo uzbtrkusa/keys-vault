@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { encryptJson, randomIv } from "../lib/crypto";
+import { fromBytea, toHex } from "../lib/bytea";
 import { parseXlsxBuffer, exportDecryptedXlsx } from "../io/xlsx";
 import { buildVaultFile, decryptVaultFile, type VaultFileV1 } from "../io/vault-file";
 import { useSession } from "../session/SessionContext";
@@ -26,11 +27,13 @@ export default function SettingsPage() {
         if (!confirm(`Found ${parsed.length} rows. Import now?`)) { setBusy(false); return; }
         setStatus(`Encrypting ${parsed.length} rows…`);
 
-        const toInsert: { ciphertext: Uint8Array; iv: Uint8Array }[] = [];
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const toInsert: { user_id: string; ciphertext: string; iv: string }[] = [];
         for (const p of parsed) {
           const iv = randomIv();
           const ct = await encryptJson(key!, iv, p);
-          toInsert.push({ ciphertext: new Uint8Array(ct), iv });
+          toInsert.push({ user_id: user.id, ciphertext: toHex(new Uint8Array(ct)), iv: toHex(iv) });
         }
 
         const BATCH = 100;
@@ -51,16 +54,18 @@ export default function SettingsPage() {
         const plain = await decryptVaultFile(parsed, pw);
         if (!confirm(`Found ${plain.length} rows in backup. Import now?`)) { setBusy(false); return; }
         setStatus(`Encrypting ${plain.length} rows under current key…`);
-        const toInsert: { ciphertext: Uint8Array; iv: Uint8Array }[] = [];
+        const { data: { user: user2 } } = await supabase.auth.getUser();
+        if (!user2) throw new Error("Not authenticated");
+        const toInsert2: { user_id: string; ciphertext: string; iv: string }[] = [];
         for (const p of plain) {
           const iv = randomIv();
           const ct = await encryptJson(key!, iv, p);
-          toInsert.push({ ciphertext: new Uint8Array(ct), iv });
+          toInsert2.push({ user_id: user2.id, ciphertext: toHex(new Uint8Array(ct)), iv: toHex(iv) });
         }
         const BATCH = 100;
-        for (let i = 0; i < toInsert.length; i += BATCH) {
-          const chunk = toInsert.slice(i, i + BATCH);
-          setStatus(`Uploading ${i + chunk.length}/${toInsert.length}…`);
+        for (let i = 0; i < toInsert2.length; i += BATCH) {
+          const chunk = toInsert2.slice(i, i + BATCH);
+          setStatus(`Uploading ${i + chunk.length}/${toInsert2.length}…`);
           const { error } = await supabase.from("vault_rows").insert(chunk);
           if (error) throw error;
         }
@@ -85,11 +90,11 @@ export default function SettingsPage() {
       .from("vault_rows").select("iv, ciphertext");
     if (rerr) { alert(rerr.message); return; }
     const file = buildVaultFile(
-      new Uint8Array(meta.salt),
+      fromBytea(meta.salt),
       meta.kdf_params,
       (rowsData ?? []).map(r => ({
-        iv: new Uint8Array(r.iv),
-        ciphertext: new Uint8Array(r.ciphertext).buffer,
+        iv: fromBytea(r.iv),
+        ciphertext: fromBytea(r.ciphertext).buffer as ArrayBuffer,
       })),
     );
     const blob = new Blob([JSON.stringify(file)], { type: "application/json" });
