@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useVaultRows } from "../vault/useVaultRows";
 import { filterRows } from "../lib/search";
@@ -18,7 +18,34 @@ export default function VaultPage() {
   const { lock } = useSession();
   const others = usePresence();
 
-  const filtered = useMemo(() => filterRows(rows ?? [], query, scope), [rows, query, scope]);
+  // ── Expansion state ───────────────────────────────────────────────────────
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [showNewRow,  setShowNewRow]  = useState(false);
+
+  const toggleExpanded = useCallback((id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  // Called by RowItem after a duplicate saves — expand the new copy.
+  const onDuplicateSaved = useCallback((newId: string) => {
+    setExpandedIds(prev => new Set([...prev, newId]));
+  }, []);
+
+  // Called when the new-row card collapses (saved or discarded).
+  const onDiscardNew = useCallback(() => {
+    setShowNewRow(false);
+  }, []);
+
+  // ── Filtered rows ─────────────────────────────────────────────────────────
+  const filtered = useMemo(
+    () => filterRows(rows ?? [], query, scope),
+    [rows, query, scope],
+  );
 
   return (
     <div className="mx-auto max-w-2xl p-3 space-y-3">
@@ -30,19 +57,40 @@ export default function VaultPage() {
           <button onClick={() => supabase.auth.signOut()} className="text-sm underline">Log out</button>
         </div>
       </div>
+
       <PresenceBanner others={others} />
+
       <SearchBar value={query} onChange={setQuery} />
+
       <div className="flex items-center justify-between text-sm text-slate-600">
         <div className="flex items-center gap-2">
           Scope: <ScopePicker value={scope} onChange={setScope} />
         </div>
         <div>{filtered.length} result{filtered.length === 1 ? "" : "s"}</div>
       </div>
+
       {isLoading && <div>Loading…</div>}
       {error && <div className="text-red-700">{(error as Error).message}</div>}
-      {!isLoading && rows && <RowList rows={filtered} query={query} />}
+
+      {!isLoading && rows && (
+        <RowList
+          rows={filtered}
+          query={query}
+          expandedIds={expandedIds}
+          onToggle={toggleExpanded}
+          showNewRow={showNewRow}
+          onDiscardNew={onDiscardNew}
+          onDuplicateSaved={onDuplicateSaved}
+        />
+      )}
+
       <div className="sticky bottom-3 flex justify-end">
-        <Link to="/edit/new" className="rounded-full bg-slate-900 px-4 py-2 text-white shadow">+ Add row</Link>
+        <button
+          onClick={() => setShowNewRow(true)}
+          className="rounded-full bg-slate-900 px-4 py-2 text-white shadow"
+        >
+          + Add row
+        </button>
       </div>
     </div>
   );
