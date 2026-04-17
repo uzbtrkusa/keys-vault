@@ -9,7 +9,8 @@ import { useEffect } from "react";
 async function fetchAndDecrypt(key: ArrayBuffer): Promise<VaultRow[]> {
   const { data, error } = await supabase
     .from("vault_rows")
-    .select("id, ciphertext, iv, version, updated_at");
+    .select("id, ciphertext, iv, version, updated_at")
+    .order("updated_at", { ascending: false });
   if (error) throw error;
   const out: VaultRow[] = [];
   for (const r of data ?? []) {
