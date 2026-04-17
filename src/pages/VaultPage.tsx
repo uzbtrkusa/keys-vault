@@ -45,7 +45,7 @@ function MoonIcon() {
 export default function VaultPage() {
   const { data: rows, isLoading, error } = useVaultRows();
   const [query, setQuery] = useState("");
-  const [scope, setScope] = useState<SearchScope>("all");
+  const [scope, setScope] = useState<SearchScope>("name");
   const { lock } = useSession();
   const others = usePresence();
   const { theme, toggle: toggleTheme } = useTheme();
@@ -117,16 +117,11 @@ export default function VaultPage() {
 
       <PresenceBanner others={others} />
 
-      <SearchBar value={query} onChange={setQuery} />
-
-      {/* Scope + result count */}
-      <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
-        <div className="flex items-center gap-2">
-          <span>Scope:</span>
-          <ScopePicker value={scope} onChange={setScope} />
-        </div>
-        <div className="tabular-nums">
-          {filtered.length.toLocaleString()} result{filtered.length === 1 ? "" : "s"}
+      {/* Search + scope on one row */}
+      <div className="flex items-center gap-2">
+        <ScopePicker value={scope} onChange={setScope} />
+        <div className="flex-1">
+          <SearchBar value={query} onChange={setQuery} />
         </div>
       </div>
 
@@ -151,15 +146,23 @@ export default function VaultPage() {
         />
       )}
 
-      {/* Floating Add button */}
-      <div className="sticky bottom-4 flex justify-end">
-        <button
-          onClick={() => setShowNewRow(true)}
-          className="flex items-center gap-1.5 rounded-full bg-slate-900 dark:bg-slate-100 px-4 py-2 text-sm font-medium text-white dark:text-slate-900 shadow-lg hover:bg-slate-700 dark:hover:bg-slate-200 active:scale-95 transition-all"
-        >
-          <span className="text-base leading-none">+</span>
-          Add note
-        </button>
+      {/* Sticky bottom bar: result count centered, Add note on the right */}
+      <div className="sticky bottom-4 flex items-center">
+        <div className="flex-1" />
+        <div className="flex-1 flex justify-center">
+          <span className="text-sm tabular-nums text-slate-500 dark:text-slate-400">
+            {filtered.length.toLocaleString()} result{filtered.length === 1 ? "" : "s"}
+          </span>
+        </div>
+        <div className="flex-1 flex justify-end">
+          <button
+            onClick={() => setShowNewRow(true)}
+            className="flex items-center gap-1.5 rounded-full bg-slate-900 dark:bg-slate-100 px-4 py-2 text-sm font-medium text-white dark:text-slate-900 shadow-lg hover:bg-slate-700 dark:hover:bg-slate-200 active:scale-95 transition-all"
+          >
+            <span className="text-base leading-none">+</span>
+            Add note
+          </button>
+        </div>
       </div>
 
     </div>
