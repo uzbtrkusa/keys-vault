@@ -6,7 +6,6 @@ import type { Session } from "@supabase/supabase-js";
 import SignupPage from "./pages/SignupPage";
 import LoginPage from "./pages/LoginPage";
 import VaultPage from "./pages/VaultPage";
-import EditRowPage from "./pages/EditRowPage";
 import SettingsPage from "./pages/SettingsPage";
 import { LockOverlay } from "./components/LockOverlay";
 import { useAutoLock } from "./session/useAutoLock";
@@ -43,12 +42,11 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/signup" element={sess ? <Navigate to="/" /> : <SignupPage />} />
-      <Route path="/login" element={sess ? <Navigate to="/" /> : <LoginPage />} />
-      <Route path="/" element={!sess ? <Navigate to="/login" /> : <Protected><VaultPage /></Protected>} />
-      <Route path="/edit/:id" element={!sess ? <Navigate to="/login" /> : <Protected><EditRowPage /></Protected>} />
+      <Route path="/signup"   element={sess ? <Navigate to="/" /> : <SignupPage />} />
+      <Route path="/login"    element={sess ? <Navigate to="/" /> : <LoginPage />} />
+      <Route path="/"         element={!sess ? <Navigate to="/login" /> : <Protected><VaultPage /></Protected>} />
       <Route path="/settings" element={!sess ? <Navigate to="/login" /> : <Protected><SettingsPage /></Protected>} />
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="*"         element={<Navigate to="/" />} />
     </Routes>
   );
 }
