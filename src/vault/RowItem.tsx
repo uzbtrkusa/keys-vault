@@ -222,44 +222,93 @@ export function RowItem({ row, isExpanded, onToggle, onDuplicateSaved, query }: 
   return (
     <div className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 shadow-md dark:shadow-slate-900/50">
 
-      {/* Header — click to collapse + auto-save */}
-      <button
-        onClick={handleCollapse}
-        disabled={saving}
-        className="w-full flex items-center justify-between px-3 py-2.5 text-left font-medium text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-750 disabled:opacity-50 border-b border-slate-200 dark:border-slate-700 rounded-t-lg transition-colors"
-      >
-        <span className="flex items-center gap-2">
-          <span className="text-slate-400 dark:text-slate-500 text-xs">▲</span>
-          <span>{row?.name || localName || "New note"}</span>
-        </span>
-        {saving && (
-          <span className="text-xs text-slate-400 dark:text-slate-500">Saving…</span>
-        )}
-      </button>
+      {/* Header — left: collapse trigger · right: actions */}
+      <div className="flex items-center border-b border-slate-200 dark:border-slate-700 rounded-t-lg">
+        <button
+          onClick={handleCollapse}
+          disabled={saving}
+          className="flex-1 flex items-center gap-2 px-3 py-2.5 text-left font-medium text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-750 disabled:opacity-50 rounded-tl-lg transition-colors min-w-0"
+        >
+          <span className="text-slate-400 dark:text-slate-500 text-xs shrink-0">▲</span>
+          <span className="truncate">{row?.name || localName || "New note"}</span>
+          {saving && (
+            <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">Saving…</span>
+          )}
+        </button>
+
+        {/* Actions in header */}
+        <div className="flex items-center gap-1 pr-2 shrink-0">
+          {row && (
+            <button
+              onClick={handleDuplicate}
+              disabled={duplicating}
+              className="rounded border border-slate-200 dark:border-slate-600 px-2 py-1 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-200 disabled:opacity-50 transition-colors"
+            >
+              {duplicating ? "Duplicating…" : "Duplicate"}
+            </button>
+          )}
+          {!row && (
+            <button
+              onClick={onToggle}
+              className="rounded border border-slate-200 dark:border-slate-600 px-2 py-1 text-xs text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              Discard
+            </button>
+          )}
+          {row && !confirmDelete && (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="px-2 py-1 text-xs text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+            >
+              Delete
+            </button>
+          )}
+          {row && confirmDelete && (
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="text-slate-500 dark:text-slate-400">Delete?</span>
+              <button
+                onClick={handleDelete}
+                disabled={del.isPending}
+                className="font-medium text-red-600 dark:text-red-400 hover:underline disabled:opacity-50"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="text-slate-500 dark:text-slate-400 hover:underline"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="px-3 pb-3 pt-3 space-y-3">
 
-        <label className="block">
-          <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">
-            Group
-          </span>
-          <input
-            value={localGroup}
-            onChange={e => setLocalGroup(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 transition-shadow"
-          />
-        </label>
-
-        <label className="block">
-          <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">
-            Name
-          </span>
-          <input
-            value={localName}
-            onChange={e => setLocalName(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 transition-shadow"
-          />
-        </label>
+        {/* Group + Name on one row */}
+        <div className="flex gap-3">
+          <label className="flex items-center gap-2 shrink-0">
+            <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">
+              Group
+            </span>
+            <input
+              value={localGroup}
+              onChange={e => setLocalGroup(e.target.value)}
+              className="w-28 rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 transition-shadow"
+            />
+          </label>
+          <label className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide shrink-0">
+              Name
+            </span>
+            <input
+              value={localName}
+              onChange={e => setLocalName(e.target.value)}
+              className="flex-1 min-w-0 rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 transition-shadow"
+            />
+          </label>
+        </div>
 
         <label className="block">
           <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">
@@ -303,59 +352,6 @@ export function RowItem({ row, isExpanded, onToggle, onDuplicateSaved, query }: 
             </button>
           </div>
         )}
-
-        {/* Action row */}
-        <div className="flex items-center justify-between pt-0.5">
-
-          {/* Left: Duplicate or Discard */}
-          <div>
-            {row && (
-              <button
-                onClick={handleDuplicate}
-                disabled={duplicating}
-                className="rounded-md border border-slate-200 dark:border-slate-600 px-2.5 py-1 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-200 disabled:opacity-50 transition-colors"
-              >
-                {duplicating ? "Duplicating…" : "Duplicate"}
-              </button>
-            )}
-            {!row && (
-              <button
-                onClick={onToggle}
-                className="rounded-md border border-slate-200 dark:border-slate-600 px-2.5 py-1 text-xs text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-              >
-                Discard
-              </button>
-            )}
-          </div>
-
-          {/* Right: Delete */}
-          {row && !confirmDelete && (
-            <button
-              onClick={() => setConfirmDelete(true)}
-              className="text-xs text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:underline transition-colors"
-            >
-              Delete
-            </button>
-          )}
-          {row && confirmDelete && (
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-slate-500 dark:text-slate-400">Delete this note?</span>
-              <button
-                onClick={handleDelete}
-                disabled={del.isPending}
-                className="font-medium text-red-600 dark:text-red-400 hover:underline disabled:opacity-50"
-              >
-                Yes
-              </button>
-              <button
-                onClick={() => setConfirmDelete(false)}
-                className="text-slate-500 dark:text-slate-400 hover:underline"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-        </div>
 
       </div>
     </div>
