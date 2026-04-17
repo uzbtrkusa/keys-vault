@@ -103,7 +103,6 @@ export default function SettingsPage() {
 
   function onExportDecrypted() {
     const pw = prompt("Re-type master password to confirm decrypted export:");
-    // This is a friction check, not a crypto check — we already have the key.
     if (pw === null || pw.length < 1) return;
     const buf = exportDecryptedXlsx(rows ?? []);
     const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
@@ -111,27 +110,53 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl p-4 space-y-4">
-      <div><Link to="/" className="text-sm underline">← Back</Link></div>
-      <h1 className="text-lg font-semibold">Settings</h1>
+    <div className="mx-auto max-w-xl p-4 space-y-6">
+      <div>
+        <Link
+          to="/"
+          className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+        >
+          ← Back
+        </Link>
+      </div>
+      <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Settings</h1>
 
-      <section className="space-y-2">
-        <h2 className="font-medium">Import</h2>
-        <p className="text-xs text-slate-600">
-          Accepts `.xlsx` (one-time migration) and `.vault` (encrypted backup restore — coming in a later task).
+      <section className="space-y-3">
+        <h2 className="font-medium text-slate-800 dark:text-slate-200">Import</h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Accepts <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">.xlsx</code> (one-time migration) and{" "}
+          <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">.vault</code> (encrypted backup restore).
         </p>
-        <input type="file" accept=".xlsx,.vault" onChange={onPickFile} disabled={busy} />
-        {status && <div className="text-sm text-slate-700">{status}</div>}
+        <input
+          type="file"
+          accept=".xlsx,.vault"
+          onChange={onPickFile}
+          disabled={busy}
+          className="text-sm text-slate-600 dark:text-slate-400 file:mr-3 file:rounded-md file:border file:border-slate-200 dark:file:border-slate-600 file:bg-white dark:file:bg-slate-800 file:px-3 file:py-1 file:text-sm file:text-slate-700 dark:file:text-slate-300 file:cursor-pointer disabled:opacity-50"
+        />
+        {status && (
+          <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-md px-3 py-2">
+            {status}
+          </div>
+        )}
       </section>
 
-      <section className="space-y-2">
-        <h2 className="font-medium">Export</h2>
-        <button onClick={onExportDecrypted} className="rounded border px-3 py-1 text-sm">
-          Download decrypted .xlsx
-        </button>
-        <button onClick={onExportVault} className="rounded border px-3 py-1 text-sm ml-2">
-          Download encrypted .vault
-        </button>
+      <section className="space-y-3">
+        <h2 className="font-medium text-slate-800 dark:text-slate-200">Export</h2>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={onExportDecrypted}
+            className="rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+          >
+            Download decrypted .xlsx
+          </button>
+          <button
+            onClick={onExportVault}
+            className="rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+          >
+            Download encrypted .vault
+          </button>
+        </div>
       </section>
     </div>
   );

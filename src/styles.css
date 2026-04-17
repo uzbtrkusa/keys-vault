@@ -4,3 +4,4 @@
 
 html, body, #root { height: 100%; }
 body { @apply bg-slate-50 text-slate-900 antialiased; }
+html.dark body { @apply bg-slate-900 text-slate-100; }

@@ -38,7 +38,6 @@ export function RowList({
   // Keyboard navigation.
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      // While typing in a field, only handle Escape.
       if (
         document.activeElement?.tagName === "INPUT" ||
         document.activeElement?.tagName === "TEXTAREA"
@@ -54,7 +53,6 @@ export function RowList({
         e.preventDefault();
         setSelected(s => Math.max(s - 1, 0));
       }
-      // Enter now toggles expand/collapse instead of navigating.
       if (e.key === "Enter" && rows[selected]) {
         e.preventDefault();
         onToggle(rows[selected].id);
@@ -99,7 +97,7 @@ export function RowList({
               }}
               className="p-1"
             >
-              <div className={vi.index === selected ? "ring-2 ring-slate-900 rounded" : ""}>
+              <div className={vi.index === selected ? "ring-2 ring-slate-400 dark:ring-slate-500 rounded-lg" : ""}>
                 <RowItem
                   row={rows[vi.index]}
                   isExpanded={expandedIds.has(rows[vi.index].id)}
