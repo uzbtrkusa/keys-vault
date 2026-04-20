@@ -320,50 +320,41 @@ export function RowItem({ row, isExpanded, onToggle, onDuplicateSaved, query }: 
 
         {/* Group + Name on one row */}
         <div className="flex gap-3">
-          <label className="flex items-center gap-2 shrink-0">
-            <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">
-              Group
-            </span>
-            <input
-              value={localGroup}
-              onChange={e => setLocalGroup(e.target.value)}
-              className="w-28 rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 transition-shadow"
-            />
-          </label>
-          <label className="flex items-center gap-2 flex-1 min-w-0">
-            <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide shrink-0">
-              Name
-            </span>
-            <input
-              value={localName}
-              onChange={e => setLocalName(e.target.value)}
-              className="flex-1 min-w-0 rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 transition-shadow"
-            />
-          </label>
+          <input
+            aria-label="Group"
+            placeholder="Group"
+            value={localGroup}
+            onChange={e => setLocalGroup(e.target.value)}
+            className="w-28 shrink-0 rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 transition-shadow"
+          />
+          <input
+            aria-label="Name"
+            placeholder="Name"
+            value={localName}
+            onChange={e => setLocalName(e.target.value)}
+            className="flex-1 min-w-0 rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 transition-shadow"
+          />
         </div>
 
-        <label className="block">
-          <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">
-            Note
-          </span>
-          <div className="mt-1">
-            <textarea
-              ref={textareaRef}
-              value={localNote}
-              onChange={e => setLocalNote(e.target.value)}
-              rows={4}
-              style={noteHeight !== null ? { height: noteHeight } : undefined}
-              className="w-full rounded-t-md rounded-b-none border border-b-0 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-sm font-mono text-slate-900 dark:text-slate-100 resize-none focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 transition-shadow"
-            />
-            <div
-              onMouseDown={handleResizeDragStart}
-              onTouchStart={handleResizeTouchStart}
-              className="flex items-center justify-center h-5 cursor-ns-resize rounded-b-md border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 select-none"
-            >
-              <div className="w-2/3 h-1 rounded-full bg-slate-300 dark:bg-slate-500" />
-            </div>
+        <div>
+          <textarea
+            ref={textareaRef}
+            aria-label="Note"
+            placeholder="Note"
+            value={localNote}
+            onChange={e => setLocalNote(e.target.value)}
+            rows={4}
+            style={noteHeight !== null ? { height: noteHeight } : undefined}
+            className="w-full rounded-t-md rounded-b-none border border-b-0 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-sm font-mono text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 transition-shadow"
+          />
+          <div
+            onMouseDown={handleResizeDragStart}
+            onTouchStart={handleResizeTouchStart}
+            className="flex items-center justify-center h-5 cursor-ns-resize rounded-b-md border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 select-none"
+          >
+            <div className="w-2/3 h-1 rounded-full bg-slate-300 dark:bg-slate-500" />
           </div>
-        </label>
+        </div>
 
         {/* Generic error */}
         {error && (
