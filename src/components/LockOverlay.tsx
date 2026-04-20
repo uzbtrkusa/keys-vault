@@ -30,7 +30,6 @@ export function LockOverlay() {
   return (
     <div className="fixed inset-0 bg-slate-900/70 backdrop-blur flex items-center justify-center p-4 z-50">
       <form onSubmit={onUnlock} className="bg-white rounded-lg p-5 w-full max-w-sm space-y-3">
-        <h2 className="font-semibold">🔒 Vault locked</h2>
         <p className="text-sm text-slate-600">Enter master password to resume.</p>
         <PasswordInput autoFocus value={pw} onChange={e => setPw((e.target as HTMLInputElement).value)} />
         {err && <div className="text-red-700 text-sm">{err}</div>}
